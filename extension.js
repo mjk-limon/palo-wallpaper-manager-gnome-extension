@@ -2,9 +2,11 @@ import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
+import Soup from 'gi://Soup';
 
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 
 import { ImageProcessor } from './utils/imageProcessor.js';
 
@@ -18,20 +20,23 @@ export default class PaloWallpaperExtension extends Extension {
         const API_URL = 'https://creative.jahidlimon.com/palo-wallpaper/fetch.php';
 
         try {
-            const process = Gio.Subprocess.new(['curl', '-s', API_URL], Gio.SubprocessFlags.STDOUT_PIPE);
-
-            const [, stdout] = await new Promise((resolve, reject) => {
-                process.communicate_utf8_async(null, null, (proc, res) => {
+            const session = new Soup.Session();
+            this.httpSession.user_agent = `User-Agent: Mozilla/5.0 (X11; GNOME Shell/${Config.PACKAGE_VERSION}; Linux x86_64; +https://github.com/mjk-limon/palo-wallpaper-gnome-extension ) PaloWallpaper-Gnome-Extension/1.0`;
+            const message = Soup.Message.new('GET', API_URL);
+            
+            const response = await new Promise((resolve, reject) => {
+                session.send_and_read_async(message, null, null, (session, res) => {
                     try {
-                        resolve(proc.communicate_utf8_finish(res));
+                        const data = session.send_and_read_finish(res);
+                        resolve(data);
                     } catch (e) {
                         reject(e);
                     }
                 });
             });
-            const response = stdout;
 
-            const data = JSON.parse(response);
+            const responseText = new TextDecoder().decode(response.get_data());
+            const data = JSON.parse(responseText);
             return data;
         } catch (e) {
             console.error('Failed to fetch image metadata:', e);
@@ -41,22 +46,27 @@ export default class PaloWallpaperExtension extends Extension {
 
     async downloadImage(url, outputPath) {
         try {
-            const process = Gio.Subprocess.new(
-                ['curl', '-s', url, '-o', outputPath],
-                Gio.SubprocessFlags.NONE
-            );
-
-            const success = await new Promise((resolve, reject) => {
-                process.wait_async(null, (proc, res) => {
+            const session = new Soup.Session();
+            const message = Soup.Message.new('GET', url);
+            
+            const response = await new Promise((resolve, reject) => {
+                session.send_and_read_async(message, null, null, (session, res) => {
                     try {
-                        resolve(proc.wait_finish(res));
+                        const data = session.send_and_read_finish(res);
+                        resolve(data);
                     } catch (e) {
                         reject(e);
                     }
                 });
             });
 
-            return success;
+            const file = Gio.File.new_for_path(outputPath);
+            const outputStream = file.replace(null, false, Gio.FileCreateFlags.NONE, null);
+
+            const success = outputStream.write_all(response.get_data(), null);
+            outputStream.close(null);
+
+            return success[0];
         } catch (e) {
             console.error('Failed to download image:', e);
             return false;
