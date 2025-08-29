@@ -21,7 +21,7 @@ export default class PaloWallpaperExtension extends Extension {
 
         try {
             const session = new Soup.Session();
-            this.httpSession.user_agent = `User-Agent: Mozilla/5.0 (X11; GNOME Shell/${Config.PACKAGE_VERSION}; Linux x86_64; +https://github.com/mjk-limon/palo-wallpaper-gnome-extension ) PaloWallpaper-Gnome-Extension/1.0`;
+            session.user_agent = `User-Agent: Mozilla/5.0 (X11; GNOME Shell/${Config.PACKAGE_VERSION}; Linux x86_64; +https://github.com/mjk-limon/palo-wallpaper-manager-gnome-extension ) PaloWallpaper-Gnome-Extension/1.0`;
             const message = Soup.Message.new('GET', API_URL);
             
             const response = await new Promise((resolve, reject) => {
@@ -47,6 +47,7 @@ export default class PaloWallpaperExtension extends Extension {
     async downloadImage(url, outputPath) {
         try {
             const session = new Soup.Session();
+            session.user_agent = `User-Agent: Mozilla/5.0 (X11; GNOME Shell/${Config.PACKAGE_VERSION}; Linux x86_64; +https://github.com/mjk-limon/palo-wallpaper-manager-gnome-extension ) PaloWallpaper-Gnome-Extension/1.0`;
             const message = Soup.Message.new('GET', url);
             
             const response = await new Promise((resolve, reject) => {
