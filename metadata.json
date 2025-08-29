@@ -1,0 +1,10 @@
+{
+  "uuid": "palo-wallpapers@mjk-limon.github.io",
+  "name": "PALO Wallpaper Manager",
+  "description": "Automatically fetches and rotates wallpapers from configurable APIs",
+  "version": "1.0.0",
+  "shell-version": ["46", "45", "44", "43"],
+  "url": "https://github.com/mjk-limon/palo-wallpapers",
+  "settings-schema": "org.gnome.shell.extensions.palo-wallpapers",
+  "session-modes": ["user"]
+}

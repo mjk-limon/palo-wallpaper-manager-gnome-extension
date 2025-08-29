@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.palo-wallpapers" path="/org/gnome/shell/extensions/palo-wallpapers/">
+    <key name="api-url" type="s">
+      <default>'https://your-api.com/images'</default>
+      <summary>API URL for fetching wallpaper data</summary>
+      <description>The URL endpoint that returns wallpaper metadata in JSON format</description>
+    </key>
+    <key name="update-interval" type="i">
+      <default>3600</default>
+      <summary>Update interval in seconds</summary>
+      <description>How often to fetch new wallpapers (in seconds)</description>
+    </key>
+    <key name="show-overlay" type="b">
+      <default>true</default>
+      <summary>Show image overlay with metadata</summary>
+      <description>Whether to display image metadata overlay on wallpapers</description>
+    </key>
+  </schema>
+</schemalist>
