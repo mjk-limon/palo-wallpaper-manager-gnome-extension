@@ -75,60 +75,10 @@ export default class PaloWallpaperExtension extends Extension {
     }
 
     async fetchWallpapers() {
-        // const data = await this.fetchImageMetadata();
+        const data = await this.fetchImageMetadata();
         let fileName, fullPath, fileUrl;
 
-        // if (!data) return;
-
-        const data = [{
-            "uuid": "palo_wp_1",
-            "url": "https://media.prothomalo.com/prothomalo-bangla%2F2025-06-29%2F0iv8lfuf%2F%E0%A7%A7%E0%A7%A7.JPG",
-            "title": "গবাদিপশুর জন্য খাদ্য সংগ্রহ করে বাড়ি ফিরছেন এক ব্যক্তি",
-            "captured_by": "মঈনুল ইসলাম",
-            "captured_at": "২৯ জুন, ২০২৫",
-            "location": "কাউনিয়া, রংপুর",
-            "more_info_link": "https://www.prothomalo.com/photo/glimpse/jvu97taj4k"
-        }, {
-            "uuid": "palo_wp_2",
-            "url": "https://media.prothomalo.com/prothomalo-bangla%2F2025-06-29%2Ffbaeknuu%2Fp2zqmzer.jpg",
-            "title": "খেত থেকে পাট কেটে এনে বাড়ির পাশে ডোবায় জাগ দিচ্ছেন এক কৃষক",
-            "captured_by": "আলীমুজ্জামান",
-            "captured_at": "২৮ জুন, ২০২৫",
-            "location": "দয়ারামপুর, ফরিদপুর",
-            "more_info_link": "https://www.prothomalo.com/photo/glimpse/jvu97taj4k"
-        }, {
-            "uuid": "palo_wp_3",
-            "url": "https://media.prothomalo.com/prothomalo-bangla%2F2025-06-29%2Fx5s10jys%2F4d66w994.JPG",
-            "title": "মাঠে গরুগুলোকে ঘাস খাওয়াতে নিয়ে যাচ্ছেন এক নারী",
-            "captured_by": "সাদ্দাম হোসেন",
-            "captured_at": "২৯ জুন, ২০২৫",
-            "location": "তেঁতুলতলা, বটিয়াঘাটা, খুলনা",
-            "more_info_link": "https://www.prothomalo.com/photo/glimpse/jvu97taj4k"
-        }, {
-            "uuid": "palo_wp_4",
-            "url": "https://media.prothomalo.com/prothomalo-bangla%2F2025-06-29%2F1hz88hgl%2F%E0%A7%A7%E0%A7%A9.jpg",
-            "title": "পড়ন্ত বিকেলে হঠাৎ বৃষ্টি। এর মধ্যে নৌকায় করে বিল পাড়ি দিয়ে বাড়ি ফিরছেন এক ব্যক্তি",
-            "captured_by": "কল্যাণ প্রসূন",
-            "captured_at": "২৮ জুন, ২০২৫",
-            "location": "গৌরাঙ বিল, জুড়ী, মৌলভীবাজার",
-            "more_info_link": "https://www.prothomalo.com/photo/glimpse/jvu97taj4k"
-        }, {
-            "uuid": "palo_wp_5",
-            "url": "https://media.prothomalo.com/prothomalo-bangla%2F2025-06-29%2Ftocc9qp3%2F%E0%A7%A7%E0%A7%AA.JPG",
-            "title": "হাওরের পানিতে মাছ শিকারে ব্যস্ত কয়েকজন",
-            "captured_by": "তাফসিলুল আজিজ",
-            "captured_at": "২৯ জুন, ২০২৫",
-            "location": "নিকলী, কিশোরগঞ্জ",
-            "more_info_link": "https://www.prothomalo.com/photo/glimpse/jvu97taj4k"
-        }, {
-            "uuid": "palo_wp_19",
-            "url": "https://media.prothomalo.com/prothomalo-bangla%2F2025-06-30%2F8pl4pyhi%2F%E0%A7%A7%E0%A7%AE.jpg",
-            "title": "আকাশে সাদা মেঘের ভেলা। নিচে হাওরের জলে নৌকায় ভেসে মাছ শিকার করছেন এক ব্যক্তি",
-            "captured_by": "আনিস মাহমুদ",
-            "captured_at": "৩০ জুন, ২০২৫",
-            "location": "মেদি বিল, দক্ষিণ সুরমা, সিলেট",
-            "more_info_link": "https://www.prothomalo.com/photo/glimpse/vmyossaxbw"
-        }];
+        if (!data) return;
 
         const imagePath = GLib.get_home_dir() + '/.local/share/palo-wallpapers/';
         GLib.mkdir_with_parents(imagePath, 0o755);
@@ -139,10 +89,10 @@ export default class PaloWallpaperExtension extends Extension {
             fileUrl = `${single.url}?w=1920&auto=format%2Ccompress&fmt=jpg`
 
             try {
-                // if (GLib.file_test(fullPath, GLib.FileTest.EXISTS)) continue;
+                if (GLib.file_test(fullPath, GLib.FileTest.EXISTS)) continue;
 
-                // const downloadSuccess = await this.downloadImage(single.url, fullPath);
-                // if (!downloadSuccess) continue;
+                const downloadSuccess = await this.downloadImage(single.url, fullPath);
+                if (!downloadSuccess) continue;
 
                 await ImageProcessor.addOverlay(fullPath, single);
             } catch (e) {
