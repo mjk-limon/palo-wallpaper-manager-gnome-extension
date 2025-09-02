@@ -21,18 +21,28 @@ export default class PaloWallpaperExtension extends Extension {
 
         try {
             const session = new Soup.Session();
-            session.user_agent = `User-Agent: Mozilla/5.0 (X11; GNOME Shell/${Config.PACKAGE_VERSION}; Linux x86_64; +https://github.com/mjk-limon/palo-wallpaper-manager-gnome-extension ) PaloWallpaper-Gnome-Extension/1.0`;
             const message = Soup.Message.new('GET', API_URL);
-            
+
+            message.request_headers.append('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' +
+                '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+            message.request_headers.append('Accept', 'application/json;q=0.9,*/*;q=0.8');
+            message.request_headers.append('Accept-Language', 'en-US,en;q=0.9');
+
             const response = await new Promise((resolve, reject) => {
+                const loop = new GLib.MainLoop(null, false);
+
                 session.send_and_read_async(message, null, null, (session, res) => {
                     try {
                         const data = session.send_and_read_finish(res);
                         resolve(data);
                     } catch (e) {
                         reject(e);
+                    } finally {
+                        loop.quit();
                     }
                 });
+
+                loop.run();
             });
 
             const responseText = new TextDecoder().decode(response.get_data());
@@ -47,18 +57,31 @@ export default class PaloWallpaperExtension extends Extension {
     async downloadImage(url, outputPath) {
         try {
             const session = new Soup.Session();
-            session.user_agent = `User-Agent: Mozilla/5.0 (X11; GNOME Shell/${Config.PACKAGE_VERSION}; Linux x86_64; +https://github.com/mjk-limon/palo-wallpaper-manager-gnome-extension ) PaloWallpaper-Gnome-Extension/1.0`;
             const message = Soup.Message.new('GET', url);
-            
+
+            message.request_headers.append(
+                'User-Agent',
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' +
+                '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            );
+            message.request_headers.append('Accept', 'image/*,*/*;q=0.8');
+            message.request_headers.append('Accept-Language', 'en-US,en;q=0.9');
+
             const response = await new Promise((resolve, reject) => {
+                const loop = new GLib.MainLoop(null, false);
+
                 session.send_and_read_async(message, null, null, (session, res) => {
                     try {
                         const data = session.send_and_read_finish(res);
                         resolve(data);
                     } catch (e) {
                         reject(e);
+                    } finally {
+                        loop.quit();
                     }
                 });
+
+                loop.run();
             });
 
             const file = Gio.File.new_for_path(outputPath);
@@ -134,7 +157,7 @@ export default class PaloWallpaperExtension extends Extension {
         this.fetchWallpapers();
         this.setWallpaper();
 
-        this._timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 30, () => {
+        this._timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 300, () => {
             this.setWallpaper();
             return GLib.SOURCE_CONTINUE;
         });
