@@ -13,7 +13,10 @@ import { ImageProcessor } from './utils/imageProcessor.js';
 export default class PaloWallpaperExtension extends Extension {
     constructor(metadata) {
         super(metadata);
+
         this._timeout = null;
+        this._wallpapers = [];
+        this._imagePath = GLib.get_home_dir() + '/.local/share/palo-wallpapers/';
     }
 
     async fetchImageMetadata() {
@@ -97,18 +100,17 @@ export default class PaloWallpaperExtension extends Extension {
         }
     }
 
-    async fetchWallpapers() {
+    async fetchAndDownloadFromServer() {
         const data = await this.fetchImageMetadata();
         let fileName, fullPath, fileUrl;
 
         if (!data) return;
 
-        const imagePath = GLib.get_home_dir() + '/.local/share/palo-wallpapers/';
-        GLib.mkdir_with_parents(imagePath, 0o755);
+        GLib.mkdir_with_parents(this._imagePath, 0o755);
 
         for (const single of data) {
             fileName = `${single.uuid}.jpg`;
-            fullPath = `${imagePath}${fileName}`;
+            fullPath = `${this._imagePath}${fileName}`;
             fileUrl = `${single.url}?w=1920&auto=format%2Ccompress&fmt=jpg`
 
             try {
@@ -124,25 +126,35 @@ export default class PaloWallpaperExtension extends Extension {
         }
     }
 
-    async setWallpaper() {
-        const imagePath = GLib.get_home_dir() + '/.local/share/palo-wallpapers/';
+    async getLocalWallpapers() {
+        let info, files = [];
 
-        try {
-            let files = [];
-            let info;
+        const dirEnum = Gio.File
+            .new_for_path(this._imagePath)
+            .enumerate_children('standard::*', Gio.FileQueryInfoFlags.NONE, null);
 
-            const dirEnum = Gio.File.new_for_path(imagePath).enumerate_children('standard::*', Gio.FileQueryInfoFlags.NONE, null);
-
-            while ((info = dirEnum.next_file(null)) !== null) {
-                if (info.get_name().endsWith('_overlay.jpg')) {
-                    files.push(info.get_name());
-                }
+        while ((info = dirEnum.next_file(null)) !== null) {
+            if (info.get_name().endsWith('_overlay.jpg')) {
+                files.push(info.get_name());
             }
-            dirEnum.close(null);
+        }
 
-            if (files.length === 0) return;
-            const randomIndex = Math.floor(Math.random() * files.length);
-            const finalPath = `${imagePath}${files[randomIndex]}`;
+        dirEnum.close(null);
+
+        if (files.length) {
+            this._wallpapers = files.sort(() => Math.random() - 0.5);
+            return true;
+        }
+
+        return false;
+    }
+
+    async setWallpaper() {
+        try {
+            if (this._wallpapers.length === 0 && !await this.getLocalWallpapers()) return false;
+
+            const currentImage = this._wallpapers.shift();
+            const finalPath = `${this._imagePath}${currentImage}`;
 
             const settings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
             settings.set_string('picture-options', 'scaled');
@@ -154,7 +166,7 @@ export default class PaloWallpaperExtension extends Extension {
     }
 
     enable() {
-        this.fetchWallpapers();
+        this.fetchAndDownloadFromServer();
         this.setWallpaper();
 
         this._timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 300, () => {
