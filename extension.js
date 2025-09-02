@@ -17,6 +17,7 @@ export default class PaloWallpaperExtension extends Extension {
         this._timeout = null;
         this._wallpapers = [];
         this._imagePath = GLib.get_home_dir() + '/.local/share/palo-wallpapers/';
+        this._lastUpdateTime = Date.now();
     }
 
     async fetchImageMetadata() {
@@ -171,6 +172,13 @@ export default class PaloWallpaperExtension extends Extension {
 
         this._timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 300, () => {
             this.setWallpaper();
+
+            if ((Date.now() - this._lastUpdateTime) / 1000 > 1800) {
+                this.fetchAndDownloadFromServer();
+
+                this._lastUpdateTime = Date.now();
+            }
+
             return GLib.SOURCE_CONTINUE;
         });
     }
